@@ -9,43 +9,32 @@ class Node:
         self.node_id = node_id
         self.children = []
 
+    def __str__(self):
+        return f"{self.node_id}: {self.children}"
+
 
 def BuildTree(records):
     root = None
-    records.sort(key=lambda x: x.record_id)
-    ordered_id = [i.record_id for i in records]
-    if records:
-        if ordered_id[-1] != len(ordered_id) - 1:
-            raise ValueError('broken tree')
-        if ordered_id[0] != 0:
-            raise ValueError('invalid')
     trees = []
-    parent = {}
-    for i in range(len(ordered_id)):
-        for j in records:
-            if ordered_id[i] == j.record_id:
-                if j.record_id == 0:
-                    if j.parent_id != 0:
-                        raise ValueError('error!')
-                if j.record_id < j.parent_id:
-                    raise ValueError('something went wrong!')
-                if j.record_id == j.parent_id:
-                    if j.record_id != 0:
-                        raise ValueError('error!')
-                trees.append(Node(ordered_id[i]))
-    for i in range(len(ordered_id)):
-        for j in trees:
-            if i == j.node_id:
-                parent = j
-        for j in records:
-            if j.parent_id == i:
-                for k in trees:
-                    if k.node_id == 0:
-                        continue
-                    if j.record_id == k.node_id:
-                        child = k
-                        parent.children.append(child)
+    sorted_record_id = sorted([i.record_id for i in records])
+    for i in range(len(records)):
+        if i in sorted_record_id and sorted_record_id[-1] == len(records) - 1:
+            for j, k in [(i.record_id, i.parent_id) for i in records]:
+                if j < k:
+                    raise ValueError ("Node record_id should be smaller than it's parent_id.")
+                elif j == k and (j!=0 or k!=0):
+                    raise ValueError ("Only root should have equal record and parent id.")
+        else:
+            raise ValueError("Record id is invalid or out of order.")
     
+    for i in sorted_record_id:
+        trees.append(Node(i))
+        for j in records:
+            if i == j.parent_id:
+                node = Node(i)
+                node.children.append(Node(j.record_id))
+                print(node)
+    print(trees)
     if len(trees) > 0:
         root = trees[0]
     return root
@@ -60,5 +49,8 @@ records = [
             Record(5, 1),
             Record(6, 2),
         ]
-print([i.record_id for i in records])
+root = BuildTree(records)
+print(root)
+
+
 
